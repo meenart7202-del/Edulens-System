@@ -1,187 +1,98 @@
-//for login page
-function login(){
-    const role = document.getElementById("role").value;
-    const msg = document.getElementById("msg");
-
-    if(role === ""){
-        msg.innerText = "Please select role!";
-        msg.style.color = "red";
-        return;
-    }
-
-    if(role === "Student"){
-        window.location.href = "student.html";
-    }
-    if(role === "Teacher"){
-        window.location.href = "teacher.html";
-    }
-    if(role === "Admin"){
-        window.location.href = "admin.html";
-    }
-}
-
-//for student page
-let studentFeedback = [];
+/***********************
+ STUDENT PAGE
+************************/
 
 const topics = {
-    Physics: ["Baenolli", "Friction"],
-    Mathematics: ["Algebra", "Trigonometry" ,"Geometry"],
-    Chemistry: ["Organic Chemistry", "Stoichiometry" ,"Acids and Bases"],
-    Biology: ["Cell Biology", "Genetic" ,"Ecology"],
-    English: ["Grammar", "Essay Writing" ,"Comprehension"],
-    Geography: ["Map", "Trigonometry" ,"Geometry"],
-    Kiswahili: ["Fasihi", "Insha" ,"Sarufi"],
-    Civics: ["Human Right", "Gender", "Election"],
-    History: ["Third World Wide", "Trigonometry", "Geometry"],
-    Bookeeping: ["Algebra", "Trigonometry" ,"Geometry"]
+  Physics: ["Bernoulli", "Friction"],
+  Mathematics: ["Algebra", "Trigonometry", "Geometry"],
+  Chemistry: ["Organic Chemistry", "Acids and Bases"],
+  Biology: ["Cell Biology", "Genetics", "Ecology"],
+  English: ["Grammar", "Essay Writing"],
+  Geography: ["Map Reading", "Climate"],
+  Kiswahili: ["Fasihi", "Sarufi"],
+  Civics: ["Human Rights", "Elections"],
+  History: ["World War", "Independence"],
+  Bookeeping: ["Ledger", "Trial Balance"]
 };
 
-function loadSubject(checkbox){
+// Load feedback form for the selected subject
+function loadSubject(radio) {
   const area = document.getElementById("feedbackArea");
-  const subject = checkbox.value;
+  const subject = radio.value;
 
-  if(checkbox.checked){
-    let html = `
-      <div class="subject-box" id="${subject}">
-        <h4>${subject}</h4>
+  // Replace old feedback form with new one
+  area.innerHTML = `
+    <div class="subject-box">
+      <h3>${subject}</h3>
 
-        <p><strong>Difficult Topics</strong></p>
-        ${topics[subject].map(t =>
-          `<label><input type="checkbox"> ${t}</label>`
-        ).join("")}
+      <p><strong>Difficult Topics</strong></p>
+      ${topics[subject].map(t => `<label><input type="checkbox"> ${t}</label>`).join("")}
 
-        <p><strong>Difficulty Level</strong></p>
-        <label><input type="radio" name="diff_${subject}"> Easy</label>
-        <label><input type="radio" name="diff_${subject}"> Medium</label>
-        <label><input type="radio" name="diff_${subject}"> Hard</label>
+      <p><strong>Difficulty Level</strong></p>
+      <label><input type="radio" name="difficulty"> Easy</label>
+      <label><input type="radio" name="difficulty"> Medium</label>
+      <label><input type="radio" name="difficulty"> Hard</label>
 
-        <textarea placeholder="Comment for ${subject}"></textarea>
-      </div>
-    `;
-    area.innerHTML += html;
-  } else {
-    document.getElementById(subject).remove();
-  }
+      <textarea placeholder="Comment (optional)"></textarea>
+    </div>
+  `;
 }
 
-function submitForm(){
-
-  //Student info
+// Submit the feedback
+function submitForm() {
   const name = document.getElementById("name").value.trim();
   const cls = document.getElementById("class").value.trim();
   const year = document.getElementById("year").value.trim();
   const date = document.getElementById("date").value;
+  const subjectRadio = document.querySelector("input[name='subject']:checked");
 
-  if(!name || !cls || !year || !date){
-    alert("Please fill your information");
+  if (!name || !cls || !year || !date || !subjectRadio) {
+    alert("Please fill all fields and select a subject");
     return;
   }
 
-  //Subjects feedback
-  const feedback = [];
+  const box = document.querySelector(".subject-box");
+  if (!box) {
+    alert("Please give feedback for the selected subject");
+    return;
+  }
 
-  document.querySelectorAll(".subject-box").forEach(box => {
-    const subject = box.id;
-
-    // topics
-    const selectedTopics = [];
-    box.querySelectorAll("input[type='checkbox']:checked").forEach(t =>{
-      selectedTopics.push(t.parentElement.innerText.trim());
-    });
-
-    // difficulty
-    const diffInput = box.querySelector("input[type='radio']:checked");
-    if(!diffInput || selectedTopics.length === 0){
-      alert("Please complete feedback for " + subject);
-      return;
-    }
-
-    const difficulty = diffInput.parentElement.innerText.trim();
-
-    // comment
-    const comment = box.querySelector("textarea").value;
-
-    feedback.push({
-      subject,
-      topics: selectedTopics,
-      difficulty,
-      comment
-    });
+  // Get selected topics
+  const selectedTopics = [];
+  box.querySelectorAll("input[type='checkbox']:checked").forEach(t => {
+    selectedTopics.push(t.parentElement.innerText.trim());
   });
 
-  if(feedback.length === 0){
-    alert("Please select at least one subject");
+  // Get difficulty
+  const diffInput = box.querySelector("input[name='difficulty']:checked");
+  if (selectedTopics.length === 0 || !diffInput) {
+    alert("Please complete subject feedback");
     return;
   }
 
-  // 3. Save all
-  studentFeedback.push({
+  const comment = box.querySelector("textarea").value;
+
+  // Save feedback in localStorage
+  const stored = JSON.parse(localStorage.getItem("studentFeedback")) || [];
+  stored.push({
     name,
     class: cls,
     year,
     date,
-    feedback
+    subject: subjectRadio.value,
+    topics: selectedTopics,
+    difficulty: diffInput.parentElement.innerText.trim(),
+    comment
   });
+  localStorage.setItem("studentFeedback", JSON.stringify(stored));
 
-  alert("Thank you ,your information has been recorded ✅");
+  alert("Thank you! Your feedback has been saved ✅");
 
-  // optional: collapse form
+  // Clear form for next input
   document.getElementById("feedbackArea").innerHTML = "";
   document.querySelectorAll("input").forEach(i => i.checked = false);
-}
-
-
-//for teacher page
-function loadTeacher(){
-  const table = document.getElementById("teacherTable");
-  table.innerHTML = "";
-
-  if(studentFeedback.length === 0){
-    table.innerHTML = `<tr><td colspan="6">No feedback yet</td></tr>`;
-    return;
-  }
-
-  studentFeedback.forEach(s =>{
-    s.feedback.forEach(f =>{
-      table.innerHTML += `
-        <tr>
-          <td>${s.name}</td>
-          <td>${s.class}</td>
-          <td>${f.subject}</td>
-          <td>${f.topics.join(", ")}</td>
-          <td>${f.difficulty}</td>
-          <td>${f.comment || "-"}</td>
-        </tr>
-      `;
-    });
-  });
-}
-
-//for admin page
-function loadAdmin() {
-
-  document.getElementById("totalStudents").innerText = studentFeedback.length;
-
-  let subjectCount = {};
-
-  studentFeedback.forEach(s => {
-    s.feedback.forEach(f => {
-      if (f.difficulty === "Hard") {
-        subjectCount[f.subject] =
-          (subjectCount[f.subject] || 0) + 1;
-      }
-    });
-  });
-
-  let max = 0;
-  let hardSub = "-";
-
-  for (let s in subjectCount) {
-    if (subjectCount[s] > max) {
-      max = subjectCount[s];
-      hardSub = s;
-    }
-  }
-
-  document.getElementById("hardSubject").innerText = hardSub;
+  document.getElementById("name").value = "";
+  document.getElementById("class").value = "";
+  document.getElementById("year").value = "";
+  document.getElementById("date").value = "";
 }
