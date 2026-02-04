@@ -4,33 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
-    <link rel="stylesheet" href="style.css">
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body>
-    <form action="loginhandler.php" method="POST">
-        <div class="left">
-            <h1>Edulens Login</h1>
-            <label>Select your role</label>
-            <select id="role">
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
-            </select><br>
 
-                <label>Username</label><br>
-                <input type="text" id="name" placeholder="Enter your username"><br>
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Password"><br>
+<body class="min-h-screen flex items-center justify-center
+             bg-gradient-to-br from-[#cbb59b] to-[#efe3d3] font-sans">
 
-            <button >Login</button>
+    <!-- FORM (800 x 500) -->
+    <form action="loginhandler.php" method="POST"
+          class="w-[800px] h-[500px] bg-white rounded-[30px]
+                 shadow-[0_10px_25px_rgba(0,0,0,0.2)]
+                 flex gap-[80px] p-[40px]">
 
-            <p id="msg"></p>
+        <!-- LEFT (70%) -->
+        <div class="w-[70%] flex flex-col justify-center text-left">
+
+            <h1 class="text-2xl font-bold text-purple-700 mb-4">
+                Digital Subject Difficulty Analyzer
+            </h1>
+
+            <label class="text-sm mb-1">Username</label>
+            <input type="text" name="username" required
+                   placeholder="Enter your username"
+                   class="w-[95%] p-2 mb-3 rounded-md border border-gray-300
+                          focus:outline-none focus:ring-2 focus:ring-purple-400">
+
+            <label class="text-sm mb-1">Password</label>
+            <input type="password" name="password" required
+                   placeholder="Password"
+                   class="w-[95%] p-2 mb-4 rounded-md border border-gray-300
+                          focus:outline-none focus:ring-2 focus:ring-purple-400">
+
+            <button type="submit"
+                    class="w-full py-2 rounded-lg bg-fuchsia-600 text-white
+                           font-semibold hover:bg-purple-700 transition">
+                Login
+            </button>
+
+            <!-- Error -->
+            <p class="text-red-500 text-sm mt-3">
+                <?php
+                if (isset($_GET['error'])) {
+                    echo "Invalid username or password";
+                }
+                ?>
+            </p>
         </div>
-        <div>
-            <img src="woman.png" alt="woman hold books">
+
+        <!-- RIGHT IMAGE (400 x 500) -->
+        <div class="w-[400px] h-[500px] -mt-[40px] -mr-[40px]
+                    bg-[#8b5e3c] rounded-[30px]
+                    flex items-center justify-center">
+
+            <img src="woman.png" alt="woman holding books"
+                 class="w-full h-full object-cover rounded-[30px]">
         </div>
+
     </form>
-        <script src="script.js"></script>
 
 </body>
 </html>
