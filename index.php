@@ -51,6 +51,13 @@
                 }
                 ?>
             </p>
+
+            <p class="text-sm text-gray-600 mt-4 text-center">
+                Don't have an account?
+                <a href="register.php" class="text-purple-600 font-semibold hover:underline">
+                    Register
+                </a>
+            </p>
         </div>
 
         <!-- RIGHT IMAGE (400 x 500) -->
