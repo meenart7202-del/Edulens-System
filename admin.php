@@ -6,7 +6,7 @@ if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== "Admin"){
 }
 include "db.php";
 
-/* COUNTS */
+/* counts */
 $total_students = mysqli_num_rows(mysqli_query($conn,"SELECT user_id FROM users WHERE role_id=1"));
 $total_teachers = mysqli_num_rows(mysqli_query($conn,"SELECT user_id FROM users WHERE role_id=2"));
 
@@ -19,7 +19,7 @@ ORDER BY cnt DESC LIMIT 1");
 $hard = mysqli_fetch_assoc($hard_q);
 $hard_subject = $hard ? $hard['subject_name'] : "N/A";
 
-/* FETCH DATA */
+/* fetch data */
 $students = mysqli_query($conn,"SELECT * FROM users WHERE role_id=1");
 $teachers = mysqli_query($conn,"SELECT * FROM users WHERE role_id=2");
 $subjects = mysqli_query($conn,"SELECT * FROM subjects");
@@ -27,7 +27,7 @@ $topics = mysqli_query($conn,"
 SELECT t.topic_id,t.topic_name,s.subject_name
 FROM topics t JOIN subjects s ON t.subject_id=s.subject_id");
 
-/* ACTIONS */
+/* action */
 if(isset($_POST['add_student'])){
     mysqli_query($conn,"INSERT INTO users(full_name,username,password,role_id)
     VALUES('$_POST[name]','$_POST[username]','".password_hash($_POST['password'],PASSWORD_DEFAULT)."',1)");
@@ -65,7 +65,7 @@ if(isset($_GET['delete_topic'])){
 
 <body class="bg-[#f5eee9] min-h-screen flex">
 
-<!-- SIDEBAR -->
+<!-- sidebar -->
 <aside class="w-72 bg-[#8b5e3c] text-white flex flex-col fixed h-full shadow-2xl">
     <div class="p-6 border-b border-white/20">
         <h2 class="text-2xl font-extrabold tracking-wide">Admin Panel</h2>
@@ -88,10 +88,10 @@ if(isset($_GET['delete_topic'])){
     </div>
 </aside>
 
-<!-- MAIN -->
+<!-- main -->
 <main class="ml-72 flex-1 p-8">
 
-<!-- DASHBOARD -->
+<!-- dashboard -->
 <section id="dashboard" class="mb-10">
     <h1 class="text-3xl font-bold text-[#8b5e3c] mb-2">Headmaster Dashboard</h1>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
@@ -110,7 +110,7 @@ if(isset($_GET['delete_topic'])){
     </div>
 </section>
 
-<!-- STUDENTS -->
+<!-- students -->
 <section id="students" class="mb-10">
 <h2 class="section-title">Students</h2>
 <form method="POST" class="flex gap-2 mb-3">

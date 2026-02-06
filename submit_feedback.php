@@ -32,13 +32,9 @@ VALUES ($user_id,$class_id,$subject_id,$difficulty_id,'$comment','$feedback_date
 $feedback_id = mysqli_insert_id($conn);
 
 // Insert topics
-foreach($topics as $topic_name){
-    $topic_name_safe = mysqli_real_escape_string($conn,$topic_name);
-    $topic_id_res = mysqli_query($conn,"SELECT topic_id FROM topics WHERE topic_name='$topic_name_safe' AND subject_id=$subject_id");
-    if($topic_id_res && mysqli_num_rows($topic_id_res)){
-        $topic_id = mysqli_fetch_assoc($topic_id_res)['topic_id'];
-        mysqli_query($conn,"INSERT INTO feedback_topics (feedback_id, topic_id) VALUES ($feedback_id,$topic_id)");
-    }
+foreach($topics as $topic_id){
+    $topic_id = intval($topic_id);
+    mysqli_query($conn,"INSERT INTO feedback_topics (feedback_id, topic_id) VALUES ($feedback_id,$topic_id)");
 }
 
 header("Location: student.php?success=1");

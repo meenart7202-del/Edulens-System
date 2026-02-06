@@ -3,9 +3,7 @@
 session_start();
 include "db.php";
 
-/* =========================
-   STATS: EASY / MEDIUM / HARD
-========================= */
+/* easy /medium/hard*/
 $easy = 0;
 $medium = 0;
 $hard = 0;
@@ -30,9 +28,7 @@ if($levelQuery){
     }
 }
 
-/* =========================
-   STUDENTS LIST
-========================= */
+/*students list*/
 $students = mysqli_query($conn,"
     SELECT 
         u.full_name,
@@ -49,16 +45,17 @@ $students = mysqli_query($conn,"
     ORDER BY u.full_name ASC
 ");
 
-/* =========================
-   FEEDBACK TABLE
-========================= */
+/* Feedback table*/
 $feedbacks = mysqli_query($conn,"
     SELECT
         u.full_name,
         c.class_name,
         s.subject_name,
+        GROUP_CONCAT(t.topic_name SEPARATOR ', ') AS topic_name,
         d.level_name,
-        f.feedback_date
+        
+        f.feedback_date,
+        f.comment
     FROM feedback f
     JOIN users u 
         ON f.user_id = u.user_id
@@ -68,9 +65,14 @@ $feedbacks = mysqli_query($conn,"
         ON f.class_id = c.class_id
     JOIN subjects s 
         ON f.subject_id = s.subject_id
+    LEFT JOIN feedback_topics ft
+        ON f.feedback_id = ft.feedback_id
+    LEFT JOIN topics t
+        ON ft.topic_id = t.topic_id
     JOIN difficulty_levels d 
         ON f.difficulty_id = d.difficulty_id
     WHERE r.role_name = 'Student'
+    GROUP BY f.feedback_id
     ORDER BY f.feedback_date DESC
 ");
 ?>
@@ -90,7 +92,7 @@ $feedbacks = mysqli_query($conn,"
 
 <body class="bg-[#f5eee9] min-h-screen font-sans flex">
 
-<!-- SIDEBAR -->
+<!-- side bar -->
 <aside id="sidebar"
 class="fixed inset-y-0 left-0 w-64 bg-[#8b5e3c] text-white
 transform -translate-x-full md:translate-x-0 z-50">
@@ -108,10 +110,10 @@ transform -translate-x-full md:translate-x-0 z-50">
 </nav>
 </aside>
 
-<!-- MAIN CONTENT -->
+<!-- main content -->
 <div class="flex-1 md:ml-64 p-6">
 
-<!-- TOP BAR -->
+<!-- top bar -->
 <div class="flex justify-between items-center mb-6">
 <button onclick="toggleSidebar()" 
 class="md:hidden bg-[#8b5e3c] text-white px-4 py-2 rounded">
@@ -122,7 +124,7 @@ Teacher Dashboard
 </h1>
 </div>
 
-<!-- STATS -->
+<!-- stats -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
 <div class="bg-white p-6 rounded-xl shadow">
 <p class="text-gray-500">Easy</p>
@@ -140,7 +142,7 @@ Teacher Dashboard
 </div>
 </div>
 
-<!-- STUDENTS LIST -->
+<!-- students list -->
 <div id="students" class="bg-white rounded-xl shadow p-6 mb-10">
 <h2 class="text-xl font-bold text-[#8b5e3c] mb-4">
 Students in Your Classes
@@ -171,7 +173,7 @@ No students found
 </table>
 </div>
 
-<!-- FEEDBACK TABLE -->
+<!-- feedback table -->
 <div class="bg-white rounded-xl shadow p-6">
 <h2 class="text-xl font-bold text-[#8b5e3c] mb-4">
 Student Subject & Difficulty Feedback
@@ -183,8 +185,10 @@ Student Subject & Difficulty Feedback
 <th class="px-4 py-2">Student</th>
 <th class="px-4 py-2">Class</th>
 <th class="px-4 py-2">Subject</th>
+<th class="px-6 py-2">Topics</th>
 <th class="px-4 py-2">Difficulty</th>
 <th class="px-4 py-2">Date</th>
+<th class="px-4 py-2">Comment</th>
 </tr>
 </thead>
 <tbody>
@@ -194,8 +198,11 @@ Student Subject & Difficulty Feedback
 <td class="px-4 py-2"><?= $f['full_name'] ?></td>
 <td class="px-4 py-2"><?= $f['class_name'] ?></td>
 <td class="px-4 py-2"><?= $f['subject_name'] ?></td>
+<td class="px-4 py-2"><?= $f['topic_name'] ?></td>
 <td class="px-4 py-2"><?= $f['level_name'] ?></td>
 <td class="px-4 py-2"><?= $f['feedback_date'] ?></td>
+<td class="px-4 py-2"><?= $f['comment'] ?></td>
+
 </tr>
 <?php } } else { ?>
 <tr>

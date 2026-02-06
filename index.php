@@ -60,7 +60,7 @@
             </p>
         </div>
 
-        <!-- RIGHT IMAGE (400 x 500) -->
+        <!-- right image -->
         <div class="w-[400px] h-[500px] -mt-[40px] -mr-[40px]
                     bg-[#8b5e3c] rounded-[30px]
                     flex items-center justify-center">
