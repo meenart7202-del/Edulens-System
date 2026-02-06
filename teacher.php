@@ -1,77 +1,221 @@
 <?php
+// teacher.php
 session_start();
-if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== "Teacher"){
-    header("Location: index.php");
-    exit();
-}
 include "db.php";
+
+/* =========================
+   STATS: EASY / MEDIUM / HARD
+========================= */
+$easy = 0;
+$medium = 0;
+$hard = 0;
+
+$levelQuery = mysqli_query($conn,"
+    SELECT d.difficulty_id, COUNT(f.feedback_id) AS total
+    FROM feedback f
+    JOIN difficulty_levels d 
+        ON f.difficulty_id = d.difficulty_id
+    GROUP BY d.difficulty_id
+");
+
+if($levelQuery){
+    while($row = mysqli_fetch_assoc($levelQuery)){
+        if($row['difficulty_id'] == 1){
+            $easy = $row['total'];
+        }elseif($row['difficulty_id'] == 2){
+            $medium = $row['total'];
+        }elseif($row['difficulty_id'] == 3){
+            $hard = $row['total'];
+        }
+    }
+}
+
+/* =========================
+   STUDENTS LIST
+========================= */
+$students = mysqli_query($conn,"
+    SELECT 
+        u.full_name,
+        c.class_name
+    FROM feedback f
+    JOIN users u 
+        ON f.user_id = u.user_id
+    JOIN roles r 
+        ON u.role_id = r.role_id
+    JOIN classes c 
+        ON f.class_id = c.class_id
+    WHERE r.role_name = 'Student'
+    GROUP BY u.user_id, c.class_id
+    ORDER BY u.full_name ASC
+");
+
+/* =========================
+   FEEDBACK TABLE
+========================= */
+$feedbacks = mysqli_query($conn,"
+    SELECT
+        u.full_name,
+        c.class_name,
+        s.subject_name,
+        d.level_name,
+        f.feedback_date
+    FROM feedback f
+    JOIN users u 
+        ON f.user_id = u.user_id
+    JOIN roles r 
+        ON u.role_id = r.role_id
+    JOIN classes c 
+        ON f.class_id = c.class_id
+    JOIN subjects s 
+        ON f.subject_id = s.subject_id
+    JOIN difficulty_levels d 
+        ON f.difficulty_id = d.difficulty_id
+    WHERE r.role_name = 'Student'
+    ORDER BY f.feedback_date DESC
+");
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Teacher Dashboard</title>
-
-<!-- Tailwind CDN -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+<style>
+#sidebar { transition: transform .3s ease; }
+</style>
 </head>
 
-<body class="bg-[#f5eee9] min-h-screen font-sans p-6">
+<body class="bg-[#f5eee9] min-h-screen font-sans flex">
 
-<!-- Header -->
-<div class="max-w-7xl mx-auto mb-8">
-    <h1 class="text-3xl font-bold text-[#8b5e3c] mb-2">Teacher Dashboard</h1>
-    <p class="text-[#6b4a35]">View all student feedbacks</p>
+<!-- SIDEBAR -->
+<aside id="sidebar"
+class="fixed inset-y-0 left-0 w-64 bg-[#8b5e3c] text-white
+transform -translate-x-full md:translate-x-0 z-50">
+
+<div class="p-6 text-2xl font-bold border-b border-white/30">
+📘 Teacher Panel
 </div>
 
-<!-- Table Container -->
-<div class="overflow-x-auto max-w-7xl mx-auto bg-white rounded-2xl shadow-xl p-6">
+<nav class="p-4 space-y-3">
+<a href="teacher.php" class="block px-4 py-2 rounded hover:bg-white/20">Dashboard</a>
+<a href="#students" class="block px-4 py-2 rounded hover:bg-white/20">Students</a>
+<a href="manage_subjects.php" class="block px-4 py-2 rounded hover:bg-white/20">Subjects</a>
+<a href="manage_topics.php" class="block px-4 py-2 rounded hover:bg-white/20">Topics</a>
+<a href="logout.php" class="block px-4 py-2 rounded hover:bg-white/20">Log out</a>
+</nav>
+</aside>
 
-<table class="min-w-full divide-y divide-gray-200">
-    <thead class="bg-[#8b5e3c]/20">
-        <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-[#8b5e3c] uppercase tracking-wider">Student</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-[#8b5e3c] uppercase tracking-wider">Class</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-[#8b5e3c] uppercase tracking-wider">Subject</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-[#8b5e3c] uppercase tracking-wider">Topics</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-[#8b5e3c] uppercase tracking-wider">Difficulty</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-[#8b5e3c] uppercase tracking-wider">Comment</th>
-        </tr>
-    </thead>
+<!-- MAIN CONTENT -->
+<div class="flex-1 md:ml-64 p-6">
 
-    <tbody class="bg-white divide-y divide-gray-200">
-    <?php
-    $sql = "SELECT f.feedback_id,u.full_name,c.class_name,s.subject_name,d.level_name,f.comment
-    FROM feedback f
-    JOIN users u ON f.user_id=u.user_id
-    JOIN classes c ON f.class_id=c.class_id
-    JOIN subjects s ON f.subject_id=s.subject_id
-    JOIN difficulty_levels d ON f.difficulty_id=d.difficulty_id";
-    $result = mysqli_query($conn,$sql);
+<!-- TOP BAR -->
+<div class="flex justify-between items-center mb-6">
+<button onclick="toggleSidebar()" 
+class="md:hidden bg-[#8b5e3c] text-white px-4 py-2 rounded">
+☰ Menu
+</button>
+<h1 class="text-3xl font-bold text-[#8b5e3c]">
+Teacher Dashboard
+</h1>
+</div>
 
-    while($row = mysqli_fetch_assoc($result)){
-        $feedback_id = $row['feedback_id'];
-        $topics_res = mysqli_query($conn,"SELECT t.topic_name FROM feedback_topics ft JOIN topics t ON ft.topic_id=t.topic_id WHERE ft.feedback_id=$feedback_id");
-        $topics_arr = [];
-        while($t = mysqli_fetch_assoc($topics_res)){
-            $topics_arr[] = $t['topic_name'];
-        }
-        $topics_str = implode(", ",$topics_arr);
-        echo "<tr class='hover:bg-[#f3e6d8] transition'>
-        <td class='px-6 py-4 whitespace-nowrap text-sm text-[#6b4a35]'>".$row['full_name']."</td>
-        <td class='px-6 py-4 whitespace-nowrap text-sm text-[#6b4a35]'>".$row['class_name']."</td>
-        <td class='px-6 py-4 whitespace-nowrap text-sm text-[#6b4a35]'>".$row['subject_name']."</td>
-        <td class='px-6 py-4 whitespace-nowrap text-sm text-[#6b4a35]'>".$topics_str."</td>
-        <td class='px-6 py-4 whitespace-nowrap text-sm text-[#6b4a35]'>".$row['level_name']."</td>
-        <td class='px-6 py-4 whitespace-nowrap text-sm text-[#6b4a35]'>".$row['comment']."</td>
-        </tr>";
-    }
-    ?>
-    </tbody>
+<!-- STATS -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<div class="bg-white p-6 rounded-xl shadow">
+<p class="text-gray-500">Easy</p>
+<h2 class="text-3xl font-bold text-green-600"><?= $easy ?></h2>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow">
+<p class="text-gray-500">Medium</p>
+<h2 class="text-3xl font-bold text-yellow-600"><?= $medium ?></h2>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow">
+<p class="text-gray-500">Hard</p>
+<h2 class="text-3xl font-bold text-red-600"><?= $hard ?></h2>
+</div>
+</div>
+
+<!-- STUDENTS LIST -->
+<div id="students" class="bg-white rounded-xl shadow p-6 mb-10">
+<h2 class="text-xl font-bold text-[#8b5e3c] mb-4">
+Students in Your Classes
+</h2>
+
+<table class="min-w-full">
+<thead class="bg-[#8b5e3c]/20">
+<tr>
+<th class="px-4 py-2 text-left">Student</th>
+<th class="px-4 py-2 text-left">Class</th>
+</tr>
+</thead>
+<tbody>
+<?php if($students && mysqli_num_rows($students) > 0){ ?>
+<?php while($s = mysqli_fetch_assoc($students)){ ?>
+<tr class="border-b hover:bg-[#f3e6d8]">
+<td class="px-4 py-2"><?= $s['full_name'] ?></td>
+<td class="px-4 py-2"><?= $s['class_name'] ?></td>
+</tr>
+<?php } } else { ?>
+<tr>
+<td colspan="2" class="px-4 py-2 text-center text-red-500">
+No students found
+</td>
+</tr>
+<?php } ?>
+</tbody>
 </table>
+</div>
+
+<!-- FEEDBACK TABLE -->
+<div class="bg-white rounded-xl shadow p-6">
+<h2 class="text-xl font-bold text-[#8b5e3c] mb-4">
+Student Subject & Difficulty Feedback
+</h2>
+
+<table class="min-w-full">
+<thead class="bg-[#8b5e3c]/20">
+<tr>
+<th class="px-4 py-2">Student</th>
+<th class="px-4 py-2">Class</th>
+<th class="px-4 py-2">Subject</th>
+<th class="px-4 py-2">Difficulty</th>
+<th class="px-4 py-2">Date</th>
+</tr>
+</thead>
+<tbody>
+<?php if($feedbacks && mysqli_num_rows($feedbacks) > 0){ ?>
+<?php while($f = mysqli_fetch_assoc($feedbacks)){ ?>
+<tr class="border-b hover:bg-[#f3e6d8]">
+<td class="px-4 py-2"><?= $f['full_name'] ?></td>
+<td class="px-4 py-2"><?= $f['class_name'] ?></td>
+<td class="px-4 py-2"><?= $f['subject_name'] ?></td>
+<td class="px-4 py-2"><?= $f['level_name'] ?></td>
+<td class="px-4 py-2"><?= $f['feedback_date'] ?></td>
+</tr>
+<?php } } else { ?>
+<tr>
+<td colspan="5" class="px-4 py-2 text-center text-red-500">
+No feedback data found
+</td>
+</tr>
+<?php } ?>
+</tbody>
+</table>
+</div>
 
 </div>
+
+<script>
+function toggleSidebar(){
+    document.getElementById('sidebar')
+        .classList.toggle('-translate-x-full');
+}
+</script>
+
 </body>
 </html>

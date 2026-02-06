@@ -22,7 +22,7 @@
         <div class="w-[70%] flex flex-col justify-center text-left">
 
             <h1 class="text-2xl font-bold text-purple-700 mb-4">
-                Digital Subject Difficulty Analyzer
+                Digital School Subject Difficulty Analyzer
             </h1>
 
             <label class="text-sm mb-1">Username</label>

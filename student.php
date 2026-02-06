@@ -1,20 +1,37 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== "Student") {
+    header("Location: index.php");
+    exit();
+}
+include "db.php";
+
+$user_id = $_SESSION['user_id'];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Student Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<meta charset="UTF-8">
+<title>Student Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
+<body class="bg-[#f5eee9] min-h-screen flex font-sans">
 
-<body class="bg-[#f5eee9] min-h-screen flex items-center justify-center p-6 text-[#4b2e1f]">
+<!-- SIDEBAR -->
+<aside class="w-64 bg-[#8b5e3c] text-white min-h-screen p-6 hidden md:block">
+    <h2 class="text-2xl font-bold mb-8">Student Panel</h2>
+    <nav class="space-y-4">
+        <a href="#info" class="block hover:text-yellow-200">Student Information</a>
+        <a href="logout.php" class="block text-red-200 font-semibold">Log out</a>
+    </nav>
+</aside>
 
-    <!-- Main Container -->
-    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-xl p-8">
+<!-- MAIN CONTENT -->
+<main class="flex-1 p-8">
 
-        <!-- Header -->
+ <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-[#8b5e3c]">
                 Student Feedback Form
@@ -24,64 +41,49 @@
             </p>
         </div>
 
-        <!-- Form -->
-        <form action="submit_feedback.php" method="POST" class="space-y-8">
+<!-- Form -->
+<form action="submit_feedback.php" method="POST" class="space-y-8">
 
-            <!-- Student Information -->
-            <div class="bg-[#f9f4f0] p-6 rounded-xl">
-                <h2 class="text-xl font-semibold text-[#8b5e3c] mb-4">
-                    Student Information
-                </h2>
+    <!-- Student Information-->
+    <div id="info" class="grid md:grid-cols-3 gap-4">
+        <div>
+            <label class="block text-sm font-medium mb-1">
+                Full Name
+            </label>
+            <input type="text" name="fullname" required
+            placeholder="Full Name"
+            class="w-full rounded-lg border border-[#d8c3b5] p-2
+            focus:outline-none focus:ring-2 focus:ring-[#8b5e3c]">
+        </div>
+        <div>
+            <label>Class</label>
+            <select name="class_id" required class="w-full p-2 rounded-lg border">
+                <option value="">-- Select Class --</option>
+                <option value="1">Form One</option>
+                <option value="2">Form Two</option>
+                <option value="3">Form Three</option>
+                <option value="4">Form Four</option>
+            </select>
+        </div>
+        <div>
+                <label class="block text-sm font-medium mb-1">
+                     Academic Year
+                </label>
+                <input type="text" name="year" placeholder="2024" required
+                        class="w-full rounded-lg border border-[#d8c3b5] p-2
+                            focus:outline-none focus:ring-2 focus:ring-[#8b5e3c]">
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-1">
+                Date
+            </label>
+            <input type="date" name="date" required
+                    class="w-full rounded-lg border border-[#d8c3b5] p-2
+                        focus:outline-none focus:ring-2 focus:ring-[#8b5e3c]">
+        </div>
+    </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">
-                            Full Name
-                        </label>
-                        <input type="text" name="fullname" required
-                               placeholder="Full Name"
-                               class="w-full rounded-lg border border-[#d8c3b5] p-2
-                                      focus:outline-none focus:ring-2 focus:ring-[#8b5e3c]">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">
-                            Class
-                        </label>
-                        <select name="class_id" required
-                                class="w-full rounded-lg border border-[#d8c3b5] p-2
-                                       focus:outline-none focus:ring-2 focus:ring-[#8b5e3c]">
-                            <option value="">-- Select Class --</option>
-                            <option value="1">Form One</option>
-                            <option value="2">Form Two</option>
-                            <option value="3">Form Three</option>
-                            <option value="4">Form Four</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">
-                            Academic Year
-                        </label>
-                        <input type="text" name="year" placeholder="2024" required
-                               class="w-full rounded-lg border border-[#d8c3b5] p-2
-                                      focus:outline-none focus:ring-2 focus:ring-[#8b5e3c]">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">
-                            Date
-                        </label>
-                        <input type="date" name="date" required
-                               class="w-full rounded-lg border border-[#d8c3b5] p-2
-                                      focus:outline-none focus:ring-2 focus:ring-[#8b5e3c]">
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Subject -->
+     <!-- Subject -->
             <div class="bg-[#f9f4f0] p-6 rounded-xl">
                 <h2 class="text-xl font-semibold text-[#8b5e3c] mb-4">
                     Select Subject
@@ -157,10 +159,9 @@
                     Submit Feedback
                 </button>
             </div>
+</form>
 
-        </form>
-    </div>
-
-    <script src="script.js"></script>
+</main>
+<script src="script.js"></script>
 </body>
 </html>
